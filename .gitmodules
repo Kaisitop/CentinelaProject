@@ -1,0 +1,9 @@
+[submodule "c-gateway"]
+	path = c-gateway
+	url = https://github.com/Kaisitop/c-gateway.git
+[submodule "ms-auth"]
+	path = ms-auth
+	url = https://github.com/Kaisitop/ms-auth.git
+[submodule "ms-core"]
+	path = ms-core
+	url = https://github.com/Kaisitop/ms-core.git
