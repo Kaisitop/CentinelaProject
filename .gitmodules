@@ -7,3 +7,9 @@
 [submodule "ms-core"]
 	path = ms-core
 	url = https://github.com/Kaisitop/ms-core.git
+[submodule "ms-IoT-Bridge"]
+	path = ms-IoT-Bridge
+	url = https://github.com/Kaisitop/ms-IoT-Bridge.git
+[submodule "ms-ia"]
+	path = ms-ia
+	url = https://github.com/Kaisitop/ms-IA.git
