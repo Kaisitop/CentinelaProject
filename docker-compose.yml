@@ -34,8 +34,8 @@ services:
       - "3000:3000"
     environment:
       - PORT=3000
-      - NATS_SERVERS=nats://nats:4222
-      - JWT_SECRET=${JWT_SECRET:-super-secret-key}
+      - NATS_SERVICE=nats://nats:4222
+      - JWT_SERVICE=${JWT_SECRET:-super-secret-key}
     depends_on:
       - nats
 
@@ -59,7 +59,7 @@ services:
     container_name: centinela-ms-core
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-root}@postgres:5432/${POSTGRES_DB:-centinela_db}?schema=public
-      - NATS_SERVERS=nats://nats:4222
+      - NATS_SERVICE=nats://nats:4222
       - PORT=3001
     depends_on:
       postgres:
@@ -72,7 +72,7 @@ services:
       context: ./ms-notificaciones
     container_name: centinela-ms-notificaciones
     environment:
-      - NATS_SERVER=nats://nats:4222
+      - NATS_SERVICE=nats://nats:4222
       - ONESIGNAL_APP_ID=${ONESIGNAL_APP_ID:-}
       - ONESIGNAL_REST_API_KEY=${ONESIGNAL_REST_API_KEY:-}
       - FIREBASE_SERVER_KEY=${FIREBASE_SERVER_KEY:-}
@@ -85,7 +85,7 @@ services:
       context: ./ms-ia
     container_name: centinela-ms-ia
     environment:
-      - NATS_SERVERS=nats://nats:4222
+      - NATS_SERVICE=nats://nats:4222
     depends_on:
       - nats
 
@@ -94,7 +94,7 @@ services:
       context: ./ms-IoT-Bridge
     container_name: centinela-ms-iot-bridge
     environment:
-      - NATS_SERVERS=nats://nats:4222
+      - NATS_SERVICE=nats://nats:4222
     depends_on:
       - nats
 
