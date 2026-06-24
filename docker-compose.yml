@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root}
       POSTGRES_DB: ${POSTGRES_DB:-centinela_db}
     ports:
-      - "5433:5433"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
@@ -44,7 +44,7 @@ services:
       context: ./ms-auth
     container_name: centinela-ms-auth
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-root}@postgres:5433/${POSTGRES_DB:-centinela_db}?schema=public
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-root}@postgres:5432/${POSTGRES_DB:-centinela_db}?schema=public
       - NATS_SERVERS=nats://nats:4222
       - JWT_SECRET=${JWT_SECRET:-super-secret-key}
     depends_on:
@@ -58,7 +58,7 @@ services:
       context: ./ms-core
     container_name: centinela-ms-core
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-root}@postgres:5433/${POSTGRES_DB:-centinela_db}?schema=public
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-root}@postgres:5432/${POSTGRES_DB:-centinela_db}?schema=public
       - NATS_SERVERS=nats://nats:4222
     depends_on:
       postgres:
