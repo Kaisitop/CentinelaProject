@@ -25,6 +25,11 @@ services:
       - "4222:4222"
       - "8222:8222"
     command: ["-m", "8222"]
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   c-gateway:
     build:
@@ -37,7 +42,8 @@ services:
       - NATS_SERVICE=nats://nats:4222
       - JWT_SERVICE=${JWT_SECRET:-super-secret-key}
     depends_on:
-      - nats
+      nats:
+        condition: service_healthy
 
   ms-auth:
     build:
@@ -78,7 +84,8 @@ services:
       - FIREBASE_SERVER_KEY=${FIREBASE_SERVER_KEY:-}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
     depends_on:
-      - nats
+      nats:
+        condition: service_healthy
 
   ms-ia:
     build:
@@ -87,7 +94,8 @@ services:
     environment:
       - NATS_SERVICE=nats://nats:4222
     depends_on:
-      - nats
+      nats:
+        condition: service_healthy
 
   ms-iot-bridge:
     build:
@@ -96,7 +104,8 @@ services:
     environment:
       - NATS_SERVICE=nats://nats:4222
     depends_on:
-      - nats
+      nats:
+        condition: service_healthy
 
 volumes:
   postgres_data:
