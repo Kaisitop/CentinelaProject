@@ -13,3 +13,6 @@
 [submodule "ms-ia"]
 	path = ms-ia
 	url = https://github.com/Kaisitop/ms-IA.git
+[submodule "ms-notificaciones"]
+	path = ms-notificaciones
+	url = https://github.com/Kaisitop/ms-notificaciones.git
