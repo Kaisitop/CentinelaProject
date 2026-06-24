@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgis/postgis:18-master
+    container_name: centinela-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root}
+      POSTGRES_DB: ${POSTGRES_DB:-centinela_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  nats:
+    image: nats:alpine
+    container_name: centinela-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: ["-m", "8222"]
+
+  c-gateway:
+    build:
+      context: ./c-gateway
+    container_name: centinela-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NATS_SERVERS=nats://nats:4222
+      - JWT_SECRET=${JWT_SECRET:-super-secret-key}
+    depends_on:
+      - nats
+
+  ms-auth:
+    build:
+      context: ./ms-auth
+    container_name: centinela-ms-auth
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-root}@postgres:5432/${POSTGRES_DB:-centinela_db}?schema=public
+      - NATS_SERVERS=nats://nats:4222
+      - JWT_SECRET=${JWT_SECRET:-super-secret-key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_started
+
+  ms-core:
+    build:
+      context: ./ms-core
+    container_name: centinela-ms-core
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-root}@postgres:5432/${POSTGRES_DB:-centinela_db}?schema=public
+      - NATS_SERVERS=nats://nats:4222
+    depends_on:
+      postgres:
+        condition: service_healthy
+      nats:
+        condition: service_started
+
+  ms-notificaciones:
+    build:
+      context: ./ms-notificaciones
+    container_name: centinela-ms-notificaciones
+    environment:
+      - NATS_SERVERS=nats://nats:4222
+      - ONESIGNAL_APP_ID=${ONESIGNAL_APP_ID:-}
+      - ONESIGNAL_REST_API_KEY=${ONESIGNAL_REST_API_KEY:-}
+      - FIREBASE_SERVER_KEY=${FIREBASE_SERVER_KEY:-}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+    depends_on:
+      - nats
+
+  ms-ia:
+    build:
+      context: ./ms-ia
+    container_name: centinela-ms-ia
+    environment:
+      - NATS_SERVERS=nats://nats:4222
+    depends_on:
+      - nats
+
+  ms-iot-bridge:
+    build:
+      context: ./ms-IoT-Bridge
+    container_name: centinela-ms-iot-bridge
+    environment:
+      - NATS_SERVERS=nats://nats:4222
+    depends_on:
+      - nats
+
+volumes:
+  postgres_data:
