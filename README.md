@@ -1,107 +1,111 @@
-# 🗂️ Proyecto Principal — Monorepo con Submódulos
+# 🗂️ Proyecto Principal — Arquitectura con Git Submodules
 
-Este repositorio agrupa los servicios del proyecto usando **Git Submodules**. Cada submódulo es un repositorio independiente que vive dentro de este repo contenedor.
+Este repositorio orquesta múltiples servicios usando **Git Submodules**.
+
+Cada submódulo es un repositorio independiente versionado, y el repositorio principal solo almacena referencias (commits específicos) de cada uno.
+
+> ⚠️ Importante: el repo principal NO contiene código de los servicios, solo punteros a commits exactos (snapshots controlados). Los submódulos están fijados a versiones concretas por diseño.
+
+---
 
 ## 📁 Estructura
 
 ```
 ./
-├── client-gateway/      → Repo independiente (client-gateway)
-├── microservicio-1/     → Repo independiente (microservicio 1)
-└── microservicio-2/     → Repo independiente (microservicio 2)
+├── client-gateway/      → Microservicio independiente
+├── microservicio-1/     → Microservicio independiente
+└── microservicio-2/     → Microservicio independiente
 ```
 
 ---
 
 ## 🚀 Clonar el proyecto por primera vez
 
-Usa `--recurse-submodules` para clonar el repo y todos los submódulos en un solo comando:
-
 ```bash
 git clone --recurse-submodules https://github.com/tu-usuario/mi-proyecto.git
 ```
 
-> Si ya clonaste el repo **sin** ese flag y las carpetas están vacías, ejecuta:
-> ```bash
-> git submodule update --init --recursive
-> ```
+Si ya clonaste sin submódulos:
+
+```bash
+git submodule update --init --recursive
+git submodule sync --recursive
+```
 
 ---
 
-## 🔄 Actualizar cambios
+## 🔄 Actualizar submódulos
 
-### Actualizar todos los submódulos de una vez
-
-Trae los últimos cambios de todos los submódulos desde sus repos remotos:
+### 🔹 Todos los submódulos
 
 ```bash
 git submodule update --remote --merge
 ```
 
-### Actualizar un submódulo específico
+---
+
+### 🔹 Uno específico
 
 ```bash
 cd microservicio-1
+git checkout main
 git pull origin main
 cd ..
-```
-
-Después de actualizar un submódulo, el repo contenedor detectará el cambio. Regístralo con un commit:
-
-```bash
 git add microservicio-1
-git commit -m "update: microservicio-1 to latest commit"
+git commit -m "update: microservicio-1 version bump"
 git push
 ```
 
 ---
 
-## ✏️ Trabajar dentro de un submódulo
-
-Cada submódulo se maneja como un repo Git normal:
+## ✏️ Flujo dentro de un submódulo
 
 ```bash
 cd client-gateway
+git checkout main
+git pull origin main
 
-# Ver el estado
-git status
-
-# Hacer cambios y commitear
 git add .
-git commit -m "feat: descripción del cambio"
+git commit -m "feat: cambio"
 git push origin main
 ```
 
-Luego vuelve al repo raíz y registra el nuevo puntero:
+Luego en el repo principal:
 
 ```bash
 cd ..
 git add client-gateway
-git commit -m "update: client-gateway to latest commit"
+git commit -m "chore: update submodule pointer"
 git push
 ```
 
 ---
 
-## ⚠️ Puntos importantes
+## ⚠️ Reglas importantes
 
-- Los submódulos apuntan a un **commit específico**, no a una rama. Por eso es necesario hacer commit en el repo contenedor cada vez que hay cambios en un submódulo.
-- Cada submódulo sigue siendo un repo **100% independiente** — puedes seguir trabajando en ellos por separado.
-- El repo contenedor **no almacena el código** de los submódulos, solo guarda una referencia (puntero) al commit exacto de cada uno.
+- Los submódulos apuntan a commits específicos, no a ramas.
+- El repo principal NO almacena código, solo referencias (SHA).
+- Cada submódulo es independiente.
+- Cambios en submódulos NO se reflejan solos en el repo principal.
+- `HEAD detached` en submódulos es NORMAL.
 
 ---
 
-## 👥 Para nuevos colaboradores
+## 👥 Onboarding
 
-1. Clonar con submódulos:
-   ```bash
-   git clone --recurse-submodules https://github.com/tu-usuario/mi-proyecto.git
-   ```
+```bash
+git clone --recurse-submodules https://github.com/tu-usuario/mi-proyecto.git
+git submodule update --init --recursive
+```
 
-2. Entrar a cualquier servicio y trabajar normal:
-   ```bash
-   cd microservicio-1
-   # instalar dependencias, correr el proyecto, etc.
-   ```
+---
 
-3. Al terminar, hacer push en el submódulo y luego actualizar el repo contenedor.
+## 🧭 Filosofía
+
+Arquitectura basada en microservicios versionados:
+
+- Independencia por servicio  
+- Versionamiento controlado  
+- Reproducibilidad del sistema  
+- Orquestación central sin acoplamiento directo  
+```
