@@ -74,6 +74,8 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-root}@postgres:5432/${POSTGRES_DB:-centinela_db}?schema=public
       - NATS_SERVICE=nats://nats:4222
       - PORT=3001
+      - ALERT_DEDUP_WINDOW_SEC=${ALERT_DEDUP_WINDOW_SEC:-60}
+      - ALERT_SINGLE_NODE_BYPASS=${ALERT_SINGLE_NODE_BYPASS:-true}
     depends_on:
       postgres:
         condition: service_healthy

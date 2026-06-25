@@ -12,17 +12,23 @@ Cada submódulo es un repositorio independiente versionado, y el repositorio pri
 
 ```
 ./
-├── client-gateway/      → Microservicio independiente
-├── microservicio-1/     → Microservicio independiente
-└── microservicio-2/     → Microservicio independiente
+├── c-gateway/           → API Gateway (NestJS)
+├── ms-auth/             → Autenticación y permisos
+├── ms-core/             → Dominio: alertas, eventos, reportes, zonas
+├── ms-notificaciones/   → Push (OneSignal), Telegram, Firebase
+├── ms-ia/               → Clasificación de audio (YAMNet)
+├── ms-IoT-Bridge/       → Bridge MQTT → NATS
+└── docker-compose.yml   → Orquestación local
 ```
+
+El frontend (`webcentinela`) vive en un repositorio aparte: [CentinelaFrontend](https://github.com/Kaisitop/CentinelaFrontend).
 
 ---
 
 ## 🚀 Clonar el proyecto por primera vez
 
 ```bash
-git clone --recurse-submodules https://github.com/tu-usuario/mi-proyecto.git
+git clone --recurse-submodules https://github.com/Kaisitop/CentinelaProject.git
 ```
 
 Si ya clonaste sin submódulos:
@@ -36,24 +42,68 @@ git submodule sync --recursive
 
 ## 🔄 Actualizar submódulos
 
-### 🔹 Todos los submódulos
+Cuando haces **merge a `main`** en un microservicio (en GitHub o local), el repo principal **no se entera solo**. Hay que traer esos commits nuevos y registrar el puntero actualizado en `CentinelaProject`.
+
+### Paso 1 — Traer el `main` remoto de cada submódulo
+
+Desde la raíz del monorepo:
 
 ```bash
+# Todos a la vez (recomendado)
 git submodule update --remote --merge
+
+# O solo los que cambiaron
+git submodule update --remote --merge ms-auth ms-core c-gateway
+```
+
+Equivale a entrar en cada carpeta y ejecutar `git pull origin main`.
+
+### Paso 2 — Registrar los punteros en el repo principal
+
+```bash
+git add ms-auth ms-core c-gateway ms-notificaciones
+# Solo los submódulos que aparezcan como modified en git status
+
+git status
+# Debe mostrar algo como: modified: ms-auth, modified: ms-core
+```
+
+### Paso 3 — Commit y push del monorepo
+
+```bash
+git commit -m "chore: actualizar punteros de submódulos tras merge en main"
+git push origin main
+```
+
+> ⚠️ No incluyas `.env` en ese commit (contiene secretos).
+
+---
+
+### 🔹 Un submódulo específico (manual)
+
+```bash
+cd ms-auth
+git checkout main
+git pull origin main
+cd ..
+git add ms-auth
+git commit -m "chore: actualizar puntero de ms-auth"
+git push origin main
 ```
 
 ---
 
-### 🔹 Uno específico
+### 🔹 Sincronizar en otra máquina (después del push)
 
 ```bash
-cd microservicio-1
-git checkout main
-git pull origin main
-cd ..
-git add microservicio-1
-git commit -m "update: microservicio-1 version bump"
-git push
+git pull
+git submodule update --init --recursive
+```
+
+O en un solo paso:
+
+```bash
+git pull --recurse-submodules
 ```
 
 ---
@@ -61,23 +111,25 @@ git push
 ## ✏️ Flujo dentro de un submódulo
 
 ```bash
-cd client-gateway
+cd ms-core
 git checkout main
 git pull origin main
 
 git add .
-git commit -m "feat: cambio"
+git commit -m "feat: cambio en ms-core"
 git push origin main
 ```
 
-Luego en el repo principal:
+Luego, **siempre** en el repo principal:
 
 ```bash
 cd ..
-git add client-gateway
-git commit -m "chore: update submodule pointer"
-git push
+git add ms-core
+git commit -m "chore: actualizar puntero de ms-core"
+git push origin main
 ```
+
+Si el cambio ya se mergeó en GitHub y solo necesitas alinear punteros, usa el flujo de [Actualizar submódulos](#-actualizar-submódulos) (pasos 1–3).
 
 ---
 
@@ -94,7 +146,7 @@ git push
 ## 👥 Onboarding
 
 ```bash
-git clone --recurse-submodules https://github.com/tu-usuario/mi-proyecto.git
+git clone --recurse-submodules https://github.com/Kaisitop/CentinelaProject.git
 git submodule update --init --recursive
 ```
 
