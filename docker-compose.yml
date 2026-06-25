@@ -90,6 +90,7 @@ services:
       - ONESIGNAL_REST_API_KEY=${ONESIGNAL_REST_API_KEY:-}
       - FIREBASE_SERVER_KEY=${FIREBASE_SERVER_KEY:-}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - DASHBOARD_URL=${DASHBOARD_URL:-http://localhost:3001}
     depends_on:
       nats:
         condition: service_healthy
@@ -100,6 +101,9 @@ services:
     container_name: centinela-ms-ia
     environment:
       - NATS_SERVICE=nats://nats:4222
+      - BRIDGE_ROOT=/ms-IoT-Bridge
+    volumes:
+      - shared_audio:/ms-IoT-Bridge/data/audio
     depends_on:
       nats:
         condition: service_healthy
@@ -112,6 +116,8 @@ services:
       - NATS_SERVICE=nats://nats:4222
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-root}@postgres:5432/${POSTGRES_DB:-centinela_db}
       - MQTT_HOST=mqtt
+    volumes:
+      - shared_audio:/app/data/audio
     depends_on:
       nats:
         condition: service_healthy
@@ -120,3 +126,4 @@ services:
 
 volumes:
   postgres_data:
+  shared_audio:
