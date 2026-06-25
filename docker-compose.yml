@@ -100,7 +100,6 @@ services:
     container_name: centinela-ms-ia
     environment:
       - NATS_SERVICE=nats://nats:4222
-      - NATS_SERVERS=nats://nats:4222
     depends_on:
       nats:
         condition: service_healthy
@@ -111,7 +110,6 @@ services:
     container_name: centinela-ms-iot-bridge
     environment:
       - NATS_SERVICE=nats://nats:4222
-      - NATS_SERVERS=nats://nats:4222
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-root}@postgres:5432/${POSTGRES_DB:-centinela_db}
       - MQTT_HOST=mqtt
     depends_on:

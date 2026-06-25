@@ -34,7 +34,7 @@ Todos los servicios están dockerizados y se orquestan mediante `docker-compose.
 A lo largo del desarrollo, se resolvieron varios problemas arquitectónicos. Sigue estrictamente estas reglas:
 
 ### 3.1. Configuración de NATS
-*   **Variable de entorno global**: Para conectar a NATS se debe usar **SIEMPRE** la variable `NATS_SERVICE` (ej. `NATS_SERVICE=nats://nats:4222`). Se renombraron variables antiguas (`NATS_SERVERS`, `NATS_SERVER`) para mantener la consistencia.
+*   **Variable de entorno global**: Para conectar a NATS se debe usar **SIEMPRE** la variable `NATS_SERVICE` (ej. `NATS_SERVICE=nats://nats:4222`) para mantener la consistencia.
 *   **Healthchecks**: El contenedor NATS arranca muy rápido, pero tarda un instante en estar listo para aceptar conexiones. En `docker-compose.yml`, los microservicios dependen de NATS utilizando `condition: service_healthy`, y NATS tiene un healthcheck que hace ping a `http://localhost:8222/healthz`. No uses `depends_on` simple para NATS, o los servicios en Python entrarán en bucles de error.
 
 ### 3.2. Prisma (Versión 7+) y NestJS
