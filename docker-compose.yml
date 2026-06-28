@@ -90,9 +90,12 @@ services:
       - NATS_SERVICE=nats://nats:4222
       - ONESIGNAL_APP_ID=${ONESIGNAL_APP_ID:-}
       - ONESIGNAL_REST_API_KEY=${ONESIGNAL_REST_API_KEY:-}
-      - FIREBASE_SERVER_KEY=${FIREBASE_SERVER_KEY:-}
+      - FIREBASE_SERVICE_ACCOUNT_PATH=/app/secrets/firebase-service-account.json
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
       - DASHBOARD_URL=${DASHBOARD_URL:-http://localhost:3001}
+    volumes:
+      - ./ms-notificaciones/secrets/firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
       nats:
         condition: service_healthy
