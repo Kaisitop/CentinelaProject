@@ -160,4 +160,49 @@ Arquitectura basada en microservicios versionados:
 - Versionamiento controlado  
 - Reproducibilidad del sistema  
 - Orquestación central sin acoplamiento directo  
+
+---
+
+## 📷 Fotos y evidencia (Cloudinary)
+
+El sistema adjunta imágenes a **reportes ciudadanos** y **alertas policiales** (evidencia al cerrar). Las URLs se guardan en PostgreSQL (`ms-core`); la subida se hace vía **Cloudinary** desde `c-gateway`.
+
+### Flujo
+
+```text
+Cliente (app web / móvil)
+  → POST /api/media/upload?tipo=reporte|evidencia  (c-gateway → Cloudinary)
+  → recibe { url, publicId, width, height }
+  → POST /api/reportes  con fotosUrls: [url, ...]
+     o PATCH /api/alertas/:id/cerrar  con evidenciaUrls: [url, ...]
+  → ms-core persiste JSON en app.reportes.fotos_urls / app.alertas.evidencia_urls
+  → Admin / operador ven galerías en webcentinela (/reportes, /alertas)
+```
+
+### Variables (`.env` raíz → `c-gateway`)
+
+```env
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+CLOUDINARY_FOLDER=centinela
+```
+
+Estructura en Cloudinary:
+
+```text
+centinela/ciudadano/YYYY-MM-DD/   ← fotos de reportes
+centinela/policial/YYYY-MM-DD/    ← evidencia al cerrar alerta
+```
+
+### Permisos JWT
+
+| Acción | Permiso |
+|---|---|
+| Subir foto de reporte | `reportes:create` |
+| Subir evidencia policial | `alertas:update_status` |
+| Ver reportes y fotos | `reportes:read_all` (admin/operador) |
+| Ver alertas y evidencia | `alertas:read` / `alertas:read_all` |
+
+Documentación detallada: `c-gateway/README.md` (HTTP), `ms-core/README.md` (persistencia), [CentinelaFrontend](https://github.com/Kaisitop/CentinelaFrontend) (UI).
 ```
