@@ -51,6 +51,8 @@ services:
       - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY:-}
       - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET:-}
       - CLOUDINARY_FOLDER=${CLOUDINARY_FOLDER:-centinela}
+      - APP_RESET_URL=${APP_RESET_URL:-centinela://reset-password}
+      - ANDROID_APP_PACKAGE=${ANDROID_APP_PACKAGE:-com.example.centinela_milagro}
     depends_on:
       nats:
         condition: service_healthy
@@ -104,6 +106,7 @@ services:
       - SMTP_PASS=${SMTP_PASS}
       - MAIL_FROM=${MAIL_FROM}
       - PUBLIC_WEB_URL=${PUBLIC_WEB_URL:-http://localhost:3001}
+      - PUBLIC_API_URL=${PUBLIC_API_URL:-http://localhost:3000}
       - APP_RESET_URL=${APP_RESET_URL:-centinela://reset-password}
       - ANDROID_APP_PACKAGE=${ANDROID_APP_PACKAGE:-com.example.centinela_milagro}
     volumes:
