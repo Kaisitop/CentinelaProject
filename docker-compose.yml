@@ -104,6 +104,8 @@ services:
       - SMTP_PASS=${SMTP_PASS}
       - MAIL_FROM=${MAIL_FROM}
       - PUBLIC_WEB_URL=${PUBLIC_WEB_URL:-http://localhost:3001}
+      - APP_RESET_URL=${APP_RESET_URL:-centinela://reset-password}
+      - ANDROID_APP_PACKAGE=${ANDROID_APP_PACKAGE:-com.example.centinela_milagro}
     volumes:
       - ./ms-notificaciones/secrets/firebase-service-account.json:/app/secrets/firebase-service-account.json:ro
     depends_on:
