@@ -53,6 +53,7 @@ services:
       - CLOUDINARY_FOLDER=${CLOUDINARY_FOLDER:-centinela}
       - APP_RESET_URL=${APP_RESET_URL:-centinela://reset-password}
       - ANDROID_APP_PACKAGE=${ANDROID_APP_PACKAGE:-com.example.centinela_milagro}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3001,http://localhost:3000}
     depends_on:
       nats:
         condition: service_healthy
