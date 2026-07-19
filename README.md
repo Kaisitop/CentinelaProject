@@ -1,208 +1,141 @@
-# 🗂️ Proyecto Principal — Arquitectura con Git Submodules
+# Centinela Project
 
-Este repositorio orquesta múltiples servicios usando **Git Submodules**.
+Monorepo principal del backend **CENTINELA** (UNEMI — Milagro, Ecuador). Orquesta microservicios mediante **Git submodules** y **Docker Compose**.
 
-Cada submódulo es un repositorio independiente versionado, y el repositorio principal solo almacena referencias (commits específicos) de cada uno.
-
-> ⚠️ Importante: el repo principal NO contiene código de los servicios, solo punteros a commits exactos (snapshots controlados). Los submódulos están fijados a versiones concretas por diseño.
+El panel web está en un repo aparte: [CentinelaFrontend / webcentinela](https://github.com/Kaisitop/CentinelaFrontend).
 
 ---
 
-## 📁 Estructura
+## Estructura
 
-```
+```text
 ./
-├── c-gateway/           → API Gateway (NestJS)
-├── ms-auth/             → Autenticación y permisos
-├── ms-core/             → Dominio: alertas, eventos, reportes, zonas
-├── ms-notificaciones/   → Push (OneSignal), Telegram, Firebase
+├── c-gateway/           → API Gateway (NestJS) — HTTP + WebSocket
+├── ms-auth/             → Autenticación, JWT, roles, email (eventos NATS)
+├── ms-core/             → Alertas, eventos, reportes, zonas, patrullaje
+├── ms-notificaciones/   → Push, Telegram, SMTP
 ├── ms-ia/               → Clasificación de audio (YAMNet)
 ├── ms-IoT-Bridge/       → Bridge MQTT → NATS
-└── docker-compose.yml   → Orquestación local
+├── docs/                → Arquitectura, contexto, MER, requisitos
+└── docker-compose.yml
 ```
-
-El frontend (`webcentinela`) vive en un repositorio aparte: [CentinelaFrontend](https://github.com/Kaisitop/CentinelaFrontend).
 
 ---
 
-## 🚀 Clonar el proyecto por primera vez
+## Documentación
+
+| Documento | Descripción |
+|-----------|-------------|
+| [**docs/contexto.md**](docs/contexto.md) | **Empezar aquí** — convenciones, flujos, roles, despliegue |
+| [docs/DOCUMENTACION_DESARROLLO.md](docs/DOCUMENTACION_DESARROLLO.md) | Documentación completa del desarrollo — backend |
+| [docs/DOCUMENTACION_DESARROLLO_FRONTEND.md](docs/DOCUMENTACION_DESARROLLO_FRONTEND.md) | Documentación completa del desarrollo — panel web |
+| [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Índice de arquitectura |
+| [docs/ARQUITECTURA_BACKEND.md](docs/ARQUITECTURA_BACKEND.md) | Backend detallado |
+| [docs/ARQUITECTURA_FRONTEND.md](docs/ARQUITECTURA_FRONTEND.md) | Panel Next.js y app |
+| [docs/CENTINELA_MER_Seguridad.md](docs/CENTINELA_MER_Seguridad.md) | Diagrama entidad-relación |
+| [docs/CENTINELA_Inseguridad_Violencia_Urbana.md](docs/CENTINELA_Inseguridad_Violencia_Urbana.md) | Requisitos de negocio |
+
+Cada microservicio tiene su propio `README.md` con endpoints y patrones NATS.
+
+---
+
+## Clonar
 
 ```bash
 git clone --recurse-submodules https://github.com/Kaisitop/CentinelaProject.git
+cd CentinelaProject
+cp .env.example .env   # completar SMTP, Cloudinary, Telegram, JWT, etc.
+docker compose up --build -d
 ```
 
 Si ya clonaste sin submódulos:
 
 ```bash
 git submodule update --init --recursive
-git submodule sync --recursive
 ```
+
+Frontend (otro repo):
+
+```bash
+cd ../webcentinela
+cp .env.example .env.local
+npm install && npm run dev
+```
+
+Variables mínimas frontend: `NEXT_PUBLIC_API_URL=http://localhost:3000/api`, `NEXT_PUBLIC_WS_ENABLED=true`.
 
 ---
 
-## 🔄 Actualizar submódulos
+## Actualizar submódulos
 
-Cuando haces **merge a `main`** en un microservicio (en GitHub o local), el repo principal **no se entera solo**. Hay que traer esos commits nuevos y registrar el puntero actualizado en `CentinelaProject`.
-
-### Paso 1 — Traer el `main` remoto de cada submódulo
-
-Desde la raíz del monorepo:
+Tras merge en `main` de un microservicio:
 
 ```bash
-# Todos a la vez (recomendado)
 git submodule update --remote --merge
-
-# O solo los que cambiaron
-git submodule update --remote --merge ms-auth ms-core c-gateway
-```
-
-Equivale a entrar en cada carpeta y ejecutar `git pull origin main`.
-
-### Paso 2 — Registrar los punteros en el repo principal
-
-```bash
-git add ms-auth ms-core c-gateway ms-notificaciones
-# Solo los submódulos que aparezcan como modified en git status
-
-git status
-# Debe mostrar algo como: modified: ms-auth, modified: ms-core
-```
-
-### Paso 3 — Commit y push del monorepo
-
-```bash
-git commit -m "chore: actualizar punteros de submódulos tras merge en main"
+git add ms-auth ms-core c-gateway ms-notificaciones   # los que cambien
+git commit -m "chore: actualizar punteros de submódulos"
 git push origin main
 ```
 
-> ⚠️ No incluyas `.env` en ese commit (contiene secretos).
+En otra máquina: `git pull --recurse-submodules`
 
 ---
 
-### 🔹 Un submódulo específico (manual)
-
-```bash
-cd ms-auth
-git checkout main
-git pull origin main
-cd ..
-git add ms-auth
-git commit -m "chore: actualizar puntero de ms-auth"
-git push origin main
-```
-
----
-
-### 🔹 Sincronizar en otra máquina (después del push)
-
-```bash
-git pull
-git submodule update --init --recursive
-```
-
-O en un solo paso:
-
-```bash
-git pull --recurse-submodules
-```
-
----
-
-## ✏️ Flujo dentro de un submódulo
+## Flujo de trabajo en un submódulo
 
 ```bash
 cd ms-core
-git checkout main
-git pull origin main
-
-git add .
-git commit -m "feat: cambio en ms-core"
-git push origin main
-```
-
-Luego, **siempre** en el repo principal:
-
-```bash
+git checkout main && git pull
+# ... cambios ...
+git commit -m "feat: ..." && git push origin main
 cd ..
 git add ms-core
-git commit -m "chore: actualizar puntero de ms-core"
+git commit -m "chore: actualizar puntero ms-core"
 git push origin main
 ```
 
-Si el cambio ya se mergeó en GitHub y solo necesitas alinear punteros, usa el flujo de [Actualizar submódulos](#-actualizar-submódulos) (pasos 1–3).
+> Los submódulos apuntan a commits SHA concretos. `HEAD detached` dentro de un submódulo es normal.
 
 ---
 
-## ⚠️ Reglas importantes
+## Servicios Docker (local)
 
-- Los submódulos apuntan a commits específicos, no a ramas.
-- El repo principal NO almacena código, solo referencias (SHA).
-- Cada submódulo es independiente.
-- Cambios en submódulos NO se reflejan solos en el repo principal.
-- `HEAD detached` en submódulos es NORMAL.
-
----
-
-## 👥 Onboarding
-
-```bash
-git clone --recurse-submodules https://github.com/Kaisitop/CentinelaProject.git
-git submodule update --init --recursive
-```
+| Contenedor | Puerto | Notas |
+|------------|--------|-------|
+| centinela-gateway | 3000 | `/api`, WebSocket `/realtime` |
+| centinela-db | 5433→5432 | PostgreSQL + PostGIS |
+| centinela-nats | 4222, 8222 | Healthcheck en 8222 |
+| centinela-mqtt | 1883 | Mosquitto |
 
 ---
 
-## 🧭 Filosofía
+## Usuarios seed (desarrollo)
 
-Arquitectura basada en microservicios versionados:
-
-- Independencia por servicio  
-- Versionamiento controlado  
-- Reproducibilidad del sistema  
-- Orquestación central sin acoplamiento directo  
+| Rol | Email | Contraseña |
+|-----|-------|------------|
+| Admin | `admin@centinela.com` | `Admin123!` |
+| Operador | `operador@centinela.com` | `Operador123!` |
+| Policía | `policia@centinela.com` | `Policia123!` |
 
 ---
 
-## 📷 Fotos y evidencia (Cloudinary)
-
-El sistema adjunta imágenes a **reportes ciudadanos** y **alertas policiales** (evidencia al cerrar). Las URLs se guardan en PostgreSQL (`ms-core`); la subida se hace vía **Cloudinary** desde `c-gateway`.
-
-### Flujo
+## Cloudinary (fotos y evidencia)
 
 ```text
-Cliente (app web / móvil)
-  → POST /api/media/upload?tipo=reporte|evidencia  (c-gateway → Cloudinary)
-  → recibe { url, publicId, width, height }
-  → POST /api/reportes  con fotosUrls: [url, ...]
-     o PATCH /api/alertas/:id/cerrar  con evidenciaUrls: [url, ...]
-  → ms-core persiste JSON en app.reportes.fotos_urls / app.alertas.evidencia_urls
-  → Admin / operador ven galerías en webcentinela (/reportes, /alertas)
+Cliente → POST /api/media/upload?tipo=reporte|evidencia (c-gateway)
+       → URLs en reportes (fotosUrls) o alertas (evidenciaUrls) vía ms-core
 ```
 
-### Variables (`.env` raíz → `c-gateway`)
+Variables: `CLOUDINARY_*` en `.env` raíz. Detalle en [c-gateway/README.md](c-gateway/README.md).
 
-```env
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-CLOUDINARY_FOLDER=centinela
-```
+---
 
-Estructura en Cloudinary:
+## Modelo IA
 
-```text
-centinela/ciudadano/YYYY-MM-DD/   ← fotos de reportes
-centinela/policial/YYYY-MM-DD/    ← evidencia al cerrar alerta
-```
+Copiar manualmente `my_yamnet_classifier.h5` en `ms-ia/models/` antes de `docker compose build ms-ia`. Ver [ms-ia/README.md](ms-ia/README.md).
 
-### Permisos JWT
+---
 
-| Acción | Permiso |
-|---|---|
-| Subir foto de reporte | `reportes:create` |
-| Subir evidencia policial | `alertas:update_status` |
-| Ver reportes y fotos | `reportes:read_all` (admin/operador) |
-| Ver alertas y evidencia | `alertas:read` / `alertas:read_all` |
+## Filosofía
 
-Documentación detallada: `c-gateway/README.md` (HTTP), `ms-core/README.md` (persistencia), [CentinelaFrontend](https://github.com/Kaisitop/CentinelaFrontend) (UI).
-```
+Microservicios versionados de forma independiente, orquestación central sin acoplar código en el monorepo — solo punteros Git reproducibles.
